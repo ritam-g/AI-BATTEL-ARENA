@@ -1,0 +1,11 @@
+import { config } from 'dotenv'
+
+config()
+
+
+/**
+ * GOOGLE_API_KEY: 
+ * MISTRAL_API_KEY:
+ * COHERE_API_KEY:
+ */
+
