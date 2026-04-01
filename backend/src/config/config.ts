@@ -10,9 +10,9 @@ dotenvConfig()
  */
 
 type CONFIG = {
-    GEMINI_API_KEY: string;
-    MISTRAL_API_KEY: string;
-    COHERE_API_KEY: string;
+    readonly GEMINI_API_KEY: string;
+    readonly MISTRAL_API_KEY: string;
+    readonly COHERE_API_KEY: string;
 }
 
 const config: CONFIG = {
