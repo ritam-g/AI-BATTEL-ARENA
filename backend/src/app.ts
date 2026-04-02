@@ -1,20 +1,15 @@
 import express from 'express'
-import { useGraph } from './services/graph.ai.js';
+import runGraph from './ai/graph.ai.js'
+
 
 const app = express()
 
-/**  
- * Health check endpoint to verify that the server is running.
- * @description This endpoint can be used by monitoring tools to check the health of the application. It returns a simple JSON response with a status of 'ok' if the server is running properly.
- * @route GET /health
- * @returns {Object} 200 - An object containing the status of the server
- */
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', message: "server is running fine" });
-})
 
-app.post("/use-graph",async (req, res) => {
-    await useGraph("write an factorial function in javascript")
-})
+app.use(express.json())
 
+// normal route for tesing graph ai
+app.get('/', async function (req, res) {
+    const result = await runGraph('How to make a perfect cup of tea?')
+    res.json(result)
+})
 export default app

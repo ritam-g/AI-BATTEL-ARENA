@@ -1,24 +1,18 @@
-import { config as dotenvConfig } from 'dotenv'
+import { config } from "dotenv";
+config();
 
-dotenvConfig()
-
-
-/**
- * GEMINI_API_KEY: 
- * MISTRAL_API_KEY:
- * COHERE_API_KEY:
- */
-
+// mistral apikey
+// cohere apikey
+// gemini apikey
 type CONFIG = {
-    readonly GEMINI_API_KEY: string;
-    readonly MISTRAL_API_KEY: string;
-    readonly COHERE_API_KEY: string;
+    MISTRAL_API_KEY: string,
+    COHERE_API_KEY: string,
+    GEMINI_API_KEY: string,
 }
 
-const config: CONFIG = {
-    GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
-    MISTRAL_API_KEY: process.env.MISTRAL_API_KEY || '',
-    COHERE_API_KEY: process.env.COHERE_API_KEY || '',
+// TODO: add more config variables as needed
+export const getConfig: CONFIG = {
+    MISTRAL_API_KEY: process.env.MISTRAL_API_KEY || "",
+    COHERE_API_KEY: process.env.COHERE_API_KEY || "",
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY || "",
 }
-
-export default config
