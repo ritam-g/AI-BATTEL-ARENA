@@ -11,7 +11,7 @@ import config from "../config/config.js";
 
 export const geminiModel = new ChatGoogleGenerativeAI({
     apiKey: config.GEMINI_API_KEY,
-    model: "gemini-1.5-flash",
+    model: "gemini-flash-latest",
 });
 
 export const mistralModel = new ChatMistralAI({
@@ -21,5 +21,5 @@ export const mistralModel = new ChatMistralAI({
 
 export const cohereModel = new ChatCohere({
     apiKey: config.COHERE_API_KEY,
-    model: "command-r-plus",
+    model: "command-a-03-2025",
 });
