@@ -11,7 +11,7 @@ import { StateSchema, MessagesValue, ReducedValue, type GraphNode, StateGraph, S
 import { HumanMessage } from "@langchain/core/messages";
 import {  z } from "zod";
 import { mistralModel, cohereModel, geminiModel } from "./model.service.js";
-import { createAgent, ProviderStrategy, providerStrategy } from "langchain";
+import { createAgent } from "langchain";
 
 
 
@@ -100,29 +100,60 @@ const judgeNode: GraphNode<typeof State> = async (state: typeof State) => {
     const judge = createAgent({
         model: geminiModel,
         tools: [],
-        //NOTE - 
-        //! Instead of relying only on the prompt to enforce structure, we use providerStrategy with a schema to strictly define the output format. The prompt tells the AI what task to perform, while the schema ensures the response follows a specific structure. The AI generates the response, and then providerStrategy validates and returns it in the defined format.
-        // !Prompt = what to do
-        //! Schema = how to return
-        responseFormat: providerStrategy(z.object({
-            solution_1_score: z.number().min(0).max(10),
-            solution_2_score: z.number().min(0).max(10),
-        }))
-    })
+    });
 
     const input = state.messages[0].content as string;
 
     const judgeResponse = await judge.invoke({
         messages: [
             new HumanMessage(
-                `You are a judge tasked with evaluating the quality of two solutions to a problem. The problem is: ${state.messages[0].text}. The first solution is: ${solution_1}. The second solution is: ${solution_2}. Please provide a score between 0 and 10 for each solution, where 0 means the solution is completely incorrect or irrelevant, and 10 means the solution is perfect and fully addresses the problem.`
+                `You are a strict AI judge.
+
+Evaluate both solutions for the given problem and score each one from 0 to 10.
+
+Problem:
+${input}
+
+Solution 1:
+${solution_1}
+
+Solution 2:
+${solution_2}
+
+Return ONLY valid JSON:
+{
+  "solution_1_score": number,
+  "solution_2_score": number
+}`
             )
         ]
-    })
+    });
 
     console.log('judge response', judgeResponse);
 
-    const judge_recommendation = judgeResponse.structuredResponse;
+    // We read the final AI message content and parse it manually because
+    // Gemini responses can be plain text JSON even when structured output is unreliable.
+    const lastMessage = judgeResponse.messages.at(-1);
+    const content = typeof lastMessage?.content === "string" ? lastMessage.content : "";
+
+    // Use a safe fallback so the graph state always gets a valid score object.
+    let judge_recommendation: {
+        solution_1_score: number;
+        solution_2_score: number;
+    };
+
+    try {
+        judge_recommendation = JSON.parse(content) as {
+            solution_1_score: number;
+            solution_2_score: number;
+        };
+    } catch {
+        judge_recommendation = {
+            solution_1_score: 0,
+            solution_2_score: 0
+        };
+    }
+
     return {
         judge_recommendation
     }
