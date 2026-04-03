@@ -1,1 +1,67 @@
 @import "tailwindcss";
+
+@theme {
+  --color-background: #0B0F19;
+  --color-primary-gradient-start: #7C3AED;
+  --color-primary-gradient-end: #3B82F6;
+  --color-accent-glow: rgba(124, 58, 237, 0.4);
+  
+  --radius-2xl: 1rem;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-slate-100 antialiased selection:bg-purple-500/30;
+    margin: 0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass-header {
+    background: rgba(11, 15, 25, 0.7);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-card {
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .glass-input {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .premium-gradient {
+    background: linear-gradient(135deg, #7C3AED 0%, #3B82F6 100%);
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400;
+  }
+
+  .glow-border {
+    position: relative;
+  }
+  
+  .glow-border::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(to right, #7C3AED, #3B82F6);
+    z-index: -1;
+    border-radius: inherit;
+    opacity: 0.5;
+    filter: blur(8px);
+    animation: glow-pulse 3s infinite ease-in-out;
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { opacity: 0.3; filter: blur(8px); }
+    50% { opacity: 0.7; filter: blur(12px); }
+  }
+}
