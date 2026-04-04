@@ -4,9 +4,11 @@ import { Card } from "./ui/Card";
 import { Badge } from "./ui/Badge";
 import { cn } from "../utils/cn";
 
-const SolutionCard = ({ name, solution, isWinner }) => {
+const SolutionCard = ({ name, solution, score, reasoning, isWinner }) => {
+  const safeScore = typeof score === "number" ? score : 0;
+
   return (
-    <Card 
+    <Card
       className={cn(
         "relative flex flex-col h-full border-white/5 bg-slate-900/40",
         isWinner && "glow-border ring-2 ring-purple-500/20 bg-purple-500/5"
@@ -19,12 +21,16 @@ const SolutionCard = ({ name, solution, isWinner }) => {
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-white tracking-tight">{name}</span>
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Model Engine</span>
+            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+              Model Engine
+            </span>
           </div>
         </div>
         <div className="flex gap-2">
-          {isWinner && <Badge variant="winner">🏆 Winner</Badge>}
-          <Badge variant={isWinner ? "primary" : "default"}>v4.2</Badge>
+          {isWinner && <Badge variant="winner">Winner</Badge>}
+          <Badge variant={isWinner ? "primary" : "default"}>
+            Score {safeScore.toFixed(1)}/10
+          </Badge>
         </div>
       </div>
 
@@ -34,25 +40,39 @@ const SolutionCard = ({ name, solution, isWinner }) => {
             <Copy className="w-4 h-4" />
           </button>
         </div>
-        
+
         <div className="flex items-center gap-2 px-6 py-3 border-b border-white/5 bg-white/5 backdrop-blur-sm">
           <Code className="w-3.5 h-3.5 text-slate-500" />
           <span className="text-[11px] text-slate-400 font-mono tracking-wider">solution.js</span>
         </div>
 
         <pre className="p-6 text-sm font-mono text-slate-300 overflow-auto max-h-[400px] leading-relaxed scrollbar-thin scrollbar-thumb-white/10">
-          <code>{solution}</code>
+          <code>{solution || "No solution available."}</code>
         </pre>
       </div>
-      
+
+      <div className="mt-6 rounded-2xl border border-white/5 bg-black/30 p-5">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+            Judge Reasoning
+          </span>
+          <Badge variant="default">Analysis</Badge>
+        </div>
+        <p className="text-sm text-slate-300 leading-relaxed font-medium">
+          {reasoning || "No reasoning available."}
+        </p>
+      </div>
+
       <div className="mt-6 flex items-center justify-between pointer-events-none">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full animate-pulse bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-          <span className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Verification Passed</span>
+          <span className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">
+            Verification Passed
+          </span>
         </div>
         <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-bold uppercase">
-           <Monitor className="w-3 h-3" />
-           <span>1.2s</span>
+          <Monitor className="w-3 h-3" />
+          <span>1.2s</span>
         </div>
       </div>
     </Card>

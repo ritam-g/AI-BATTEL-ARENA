@@ -13,18 +13,17 @@ export const useApp = () => {
 
 export const AppProvider = ({ children }) => {
   const [status, setStatus] = useState('idle'); // 'idle' | 'loading' | 'finished'
-  const [problem, setProblem] = useState('');
   const [results, setResults] = useState(null);
 
   const startComparison = (inputProblem) => {
-    setProblem(inputProblem);
     setStatus('loading');
 
-    // Simulate generation delay
+    // Keep the dummy data shape identical to the backend response shape
+    // so the UI can swap to real API data later without structural changes.
     setTimeout(() => {
       setResults({
-        models: mockData.models,
-        winner: mockData.winner
+        ...mockData,
+        problem: inputProblem?.trim() || mockData.problem,
       });
       setStatus('finished');
     }, 2000);
@@ -32,12 +31,11 @@ export const AppProvider = ({ children }) => {
 
   const reset = () => {
     setStatus('idle');
-    setProblem('');
     setResults(null);
   };
 
   return (
-    <AppContext.Provider value={{ status, problem, results, startComparison, reset }}>
+    <AppContext.Provider value={{ status, results, startComparison, reset }}>
       {children}
     </AppContext.Provider>
   );

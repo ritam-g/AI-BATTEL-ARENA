@@ -1,23 +1,13 @@
 export const mockData = {
   problem: "Write a factorial function in JavaScript",
-  models: [
-    {
-      id: "mistral",
-      name: "Mistral Large",
-      solution: `function factorial(n) {
+  solution_1: `function factorial(n) {
   if (n === 0 || n === 1) return 1;
   return n * factorial(n - 1);
 }
 
 // Example usage:
 console.log(factorial(5)); // 120`,
-      score: 8.5,
-      reasoning: "Simple and clean implementation of the recursion pattern. However, it lacks iterative optimization and edge-case handling for negative numbers or very large inputs."
-    },
-    {
-      id: "cohere",
-      name: "Cohere Command R+",
-      solution: `/**
+  solution_2: `/**
  * Calculates the factorial of a non-negative integer using an iterative approach.
  * Handles edge cases for negative numbers and uses BigInt for larger results.
  * @param {number} n
@@ -35,9 +25,13 @@ function factorial(n) {
 
 // Usage example:
 console.log(factorial(20)); // 2432902008176640000`,
-      score: 9.2,
-      reasoning: "Excellent iterative implementation with built-in BigInt support for large results and proper validation of negative inputs. Better performance for deep recursions."
-    }
-  ],
-  winner: "cohere"
+  judgeMent: {
+    solution_1_score: 8.5,
+    solution_2_score: 9.2,
+    solution_1_reasoning:
+      "Simple and clean recursive logic, but it does not handle invalid input and can run into stack depth issues for larger values.",
+    solution_2_reasoning:
+      "More robust overall because it validates the input and uses an iterative approach that is safer for larger factorial calculations.",
+    winner: "mistral",
+  }
 };

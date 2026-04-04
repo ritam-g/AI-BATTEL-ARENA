@@ -15,4 +15,5 @@ app.get('/', async function (req, res) {
     const result = await runGraph('How to make a perfect cup of tea?')
     res.json(result)
 })
+// ! make one route for user input and one route for AI response
 export default app
