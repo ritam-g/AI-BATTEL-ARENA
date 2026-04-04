@@ -92,7 +92,7 @@ const JudgePanel = ({ judgeMent, winnerKey, winnerLabel }) => {
                 <TrendingUp className="w-4 h-4 text-emerald-400" />
               </div>
               <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                <span className="text-emerald-400 font-bold">{winnerLabel}</span> has the stronger overall judge score in this comparison.
+                <span className="text-emerald-400 font-bold">{winnerLabel}</span> was selected by the judge as the winning model in this comparison.
               </p>
             </div>
             <div className="flex items-start gap-4">

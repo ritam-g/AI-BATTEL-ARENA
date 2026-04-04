@@ -13,22 +13,21 @@ const Home = () => {
   const { status, results, startComparison, reset } = useApp();
   const [input, setInput] = useState('');
 
-  const solution1Score = results?.judgeMent?.solution_1_score ?? 0;
-  const solution2Score = results?.judgeMent?.solution_2_score ?? 0;
+  const winner = results?.judgeMent?.winner;
 
   const winnerKey =
-    solution1Score === solution2Score
-      ? 'tie'
-      : solution1Score > solution2Score
-        ? 'solution_1'
-        : 'solution_2';
+    winner === 'mistral'
+      ? 'solution_1'
+      : winner === 'cohere'
+        ? 'solution_2'
+        : null;
 
   const winnerLabel =
-    winnerKey === 'tie'
-      ? 'Tie'
-      : winnerKey === 'solution_1'
-        ? 'Solution 1'
-        : 'Solution 2';
+    winner === 'mistral'
+      ? 'Mistral'
+      : winner === 'cohere'
+        ? 'Cohere'
+        : 'Pending';
 
   const handleSubmit = (e) => {
     e.preventDefault();

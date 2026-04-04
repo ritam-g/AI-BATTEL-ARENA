@@ -27,7 +27,7 @@ const SolutionCard = ({ name, solution, score, reasoning, isWinner }) => {
           </div>
         </div>
         <div className="flex gap-2">
-          {isWinner && <Badge variant="winner">Winner</Badge>}
+          {isWinner && <Badge variant="winner">🏆 Winner</Badge>}
           <Badge variant={isWinner ? "primary" : "default"}>
             Score {safeScore.toFixed(1)}/10
           </Badge>
