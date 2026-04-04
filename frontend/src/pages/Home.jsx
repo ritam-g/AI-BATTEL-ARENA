@@ -1,3 +1,5 @@
+// This is the Home page of the AI Battle Arena.
+// It contains the main search input, displays model results, and the judge panel.
 import React, { useState } from 'react';
 import Header from '../components/Header';
 import SolutionCard from '../components/SolutionCard';
@@ -11,6 +13,8 @@ const Home = () => {
   const { status, results, startComparison, reset } = useApp();
   const [input, setInput] = useState('');
 
+  // handleSubmit: This function is called when the user clicks 'Compare Solution' 
+  // or presses Enter in the input search box.
   const handleSubmit = (e) => {
     e.preventDefault();
     if (input.trim() && status === 'idle') {
@@ -19,11 +23,12 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    // src-pages-Home: Root class for identifying the Home page code
+    <div className="min-h-screen bg-background pb-32 src-pages-Home">
       <Header />
       
       <main className="pt-20">
-        {/* Input Section */}
+        {/* Input Section: This is where you type your prompt or problem */}
         <section className="relative min-h-[70vh] flex flex-col items-center justify-center px-6 overflow-hidden">
           {/* Background Blobs */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl h-[500px] pointer-events-none -z-10">
@@ -78,7 +83,7 @@ const Home = () => {
           </motion.div>
         </section>
 
-        {/* Results Section */}
+        {/* Results Section: This shows once the AI models have finished generating solutions */}
         <AnimatePresence>
           {status === 'finished' && results && (
             <motion.div
@@ -138,7 +143,7 @@ const Home = () => {
 
       <footer className="py-12 border-t border-white/5 bg-black/20 text-center">
         <p className="text-slate-500 text-xs font-bold uppercase tracking-widest leading-relaxed">
-          © 2026 AI Arena Benchmark. Built by Antigravity Core.
+          © 2026 AI Arena Benchmark. Built by Ritam Maty.
         </p>
       </footer>
     </div>

@@ -1,3 +1,5 @@
+// This component shows the AI Judge's evaluation of the different solutions.
+// It includes score bars and insight cards from the judge.
 import React, { useEffect, useState } from 'react';
 import { motion, animate } from 'framer-motion';
 import { ShieldCheck, TrendingUp, Info, BarChart3 } from 'lucide-react';
@@ -5,6 +7,7 @@ import { Card } from './ui/Card';
 import { Badge } from './ui/Badge';
 import { cn } from '../utils/cn';
 
+// ScoreBar: This small component draws the progress bar for each model's score.
 const ScoreBar = ({ score, label, color }) => {
   const [displayScore, setDisplayScore] = useState(0);
 
@@ -38,7 +41,8 @@ const ScoreBar = ({ score, label, color }) => {
 
 const JudgePanel = ({ models, winner }) => {
   return (
-      <div className="w-full max-w-7xl mx-auto px-6 py-20 border-t border-white/5">
+      // src-components-JudgePanel: Use this class to find this file in the code
+      <div className="w-full max-w-7xl mx-auto px-6 py-20 border-t border-white/5 src-components-JudgePanel">
         <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
           <div className="flex items-center gap-4">
             <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 shadow-xl shadow-purple-500/5">

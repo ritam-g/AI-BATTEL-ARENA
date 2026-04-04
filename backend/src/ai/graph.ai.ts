@@ -1,11 +1,14 @@
+// This file defines the "Brain" of the AI Arena using LangGraph.
+// It sets up a workflow where one step generates solutions and the next step judges them.
 import { StateSchema, MessagesValue, type GraphNode, StateGraph, START, END } from "@langchain/langgraph";
 import z from "zod";
 import { geminiModel, mistralAIModel, cohereModel } from "./model.ai.js";
 import { createAgent, providerStrategy, HumanMessage } from 'langchain'
+// The State defines what information we are tracking throughout the AI's "thought process".
 const State = new StateSchema({
-    problem: z.string().default(""),
-    solution_1: z.string().default(""),
-    solution_2: z.string().default(""),
+    problem: z.string().default(""), // The original problem description
+    solution_1: z.string().default(""), // Solution from the first model
+    solution_2: z.string().default(""), // Solution from the second model
     judgeMent: z.object({
         solution_1_score: z.number().default(0),
         solution_2_score: z.number().default(0),
@@ -14,8 +17,8 @@ const State = new StateSchema({
     })
 });
 
-//! now i have to make node for solution 1 and solution 2 and then a node for judgement and then connect them all together in a graph
-
+// solutionNode: This part of the brain asks two different AI models (Mistral and Cohere) 
+// to solve the same problem at the same time.
 const solutionNode: GraphNode<typeof State> = async (State) => {
     const { problem } = State;
     // now we will call two model of the same problem and get two different solution and then we will pass those two solution to the judgement node and then we will get the judgement of which solution is better and why
@@ -31,8 +34,8 @@ const solutionNode: GraphNode<typeof State> = async (State) => {
     }
 }
 
-//! now we have to make a judgement node which will take the problem and the two solution and then it will return the judgement of which solution is better and why
-
+// judgementNode: This part of the brain uses the Gemini model to look at both solutions 
+// and decide which one is better, giving each a score and an explanation.
 const judgementNode: GraphNode<typeof State> = async (State) => {
     const { problem, solution_1, solution_2 } = State;
 
@@ -76,8 +79,8 @@ const judgementNode: GraphNode<typeof State> = async (State) => {
 }
 
 
-// now we will create a graph and connect the nodes together
-
+// Here we define the "Map" or "Flow" of how the AI should think.
+// 1. Start -> 2. Generate Solutions -> 3. Judge Solutions -> 4. End
 const graph = new StateGraph(State)
     .addNode("solutionNode", solutionNode)
     .addNode("judgementNode", judgementNode)
