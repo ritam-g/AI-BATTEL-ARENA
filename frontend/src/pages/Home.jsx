@@ -1,186 +1,192 @@
-// This is the Home page of the AI Battle Arena.
-// It contains the main search input, displays both solutions, and the judge panel.
-import React, { useState } from 'react';
-import Header from '../components/Header';
-import SolutionCard from '../components/SolutionCard';
-import JudgePanel from '../components/JudgePanel';
-import { Button } from '../components/ui/Button';
-import { useApp } from '../context/AppContext';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Trophy, Zap, RefreshCw } from 'lucide-react';
+import React, { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Layers3, Shield, Sparkles, Swords } from "lucide-react";
+import Header from "../components/Header";
+import SolutionCard from "../components/SolutionCard";
+import JudgePanel from "../components/JudgePanel";
+import BattleRow from "../components/chat/BattleRow";
+import BattleStartIndicator from "../components/chat/BattleStartIndicator";
+import ChatContainer from "../components/chat/ChatContainer";
+import ChatMessage from "../components/chat/ChatMessage";
+import InputBar from "../components/chat/InputBar";
+import { useApp } from "../context/AppContext";
+import { getWinnerKey, getWinnerLabel } from "../utils/battle";
+
+const modelCards = [
+  {
+    key: "solution_1",
+    title: "Mistral",
+    subtitle: "solution_1",
+    model: "mistral",
+  },
+  {
+    key: "solution_2",
+    title: "Cohere",
+    subtitle: "solution_2",
+    model: "cohere",
+  },
+];
+
+const emptyStateItems = [
+  {
+    icon: Layers3,
+    title: "Instant battle orchestration",
+    description: "Your prompt becomes a live arena run with staged model responses and a final verdict.",
+  },
+  {
+    icon: Swords,
+    title: "Side-by-side answers",
+    description: "Watch Mistral and Cohere answer in parallel inside a single cinematic conversation flow.",
+  },
+  {
+    icon: Shield,
+    title: "Judge-backed winner",
+    description: "Scores, reasoning, and the winner land as their own verdict block with animated emphasis.",
+  },
+];
 
 const Home = () => {
-  const { status, results, startComparison, reset } = useApp();
-  const [input, setInput] = useState('');
+  const { status, messages, error, startComparison, clearConversation } = useApp();
+  const [input, setInput] = useState("");
 
-  const winner = results?.judgeMent?.winner;
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-  const winnerKey =
-    winner === 'mistral'
-      ? 'solution_1'
-      : winner === 'cohere'
-        ? 'solution_2'
-        : null;
-
-  const winnerLabel =
-    winner === 'mistral'
-      ? 'Mistral'
-      : winner === 'cohere'
-        ? 'Cohere'
-        : 'Pending';
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (input.trim() && status === 'idle') {
-      startComparison(input);
+    if (!input.trim() || status === "loading") {
+      return;
     }
+
+    const submittedInput = input;
+    setInput("");
+    await startComparison(submittedInput);
+  };
+
+  const renderArenaMessage = (message) => {
+    if (message.type === "user") {
+      return <ChatMessage key={message.id} content={message.content} tone="user" />;
+    }
+
+    if (message.type === "system") {
+      return <ChatMessage key={message.id} content={message.content} tone="system" />;
+    }
+
+    if (message.type === "battle_start") {
+      return <BattleStartIndicator key={message.id} />;
+    }
+
+    if (message.type === "solutions") {
+      const winnerKey = getWinnerKey(message.judgeMent?.winner);
+
+      return (
+        <BattleRow
+          key={message.id}
+          left={(
+            <SolutionCard
+              title={modelCards[0].title}
+              subtitle={modelCards[0].subtitle}
+              content={message.solution_1}
+              score={message.judgeMent?.solution_1_score}
+              isWinner={winnerKey === modelCards[0].key}
+              model={modelCards[0].model}
+            />
+          )}
+          right={(
+            <SolutionCard
+              title={modelCards[1].title}
+              subtitle={modelCards[1].subtitle}
+              content={message.solution_2}
+              score={message.judgeMent?.solution_2_score}
+              isWinner={winnerKey === modelCards[1].key}
+              model={modelCards[1].model}
+            />
+          )}
+        />
+      );
+    }
+
+    if (message.type === "judgement") {
+      return (
+        <JudgePanel
+          key={message.id}
+          judgeMent={message.judgeMent}
+          winnerKey={getWinnerKey(message.judgeMent?.winner)}
+          winnerLabel={getWinnerLabel(message.judgeMent?.winner)}
+        />
+      );
+    }
+
+    return null;
   };
 
   return (
-    <div className="min-h-screen bg-background pb-32 src-pages-Home">
+    <div className="arena-shell h-screen overflow-hidden">
       <Header />
 
-      <main className="pt-20">
-        <section className="relative min-h-[70vh] flex flex-col items-center justify-center px-6 overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl h-[500px] pointer-events-none -z-10">
-            <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[120px] animate-pulse" />
-            <div className="absolute bottom-0 right-0 w-[350px] h-[350px] bg-blue-600/10 rounded-full blur-[100px] animate-pulse delay-700" />
-          </div>
+      <main className="mt-20 h-[calc(100vh-5rem)] px-4 pb-4 pt-4 md:px-6">
+        <div className="mx-auto flex h-full max-w-7xl flex-col overflow-hidden rounded-[32px] border border-white/8 bg-white/[0.03] shadow-[0_30px_120px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
+          <ChatContainer scrollKey={messages.length}>
+            {messages.length === 0 ? (
+              <motion.section
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, ease: "easeOut" }}
+                className="flex min-h-full flex-1 items-center justify-center"
+              >
+                <div className="w-full max-w-5xl">
+                  <div className="mx-auto max-w-3xl text-center">
+                    <div className="mx-auto mb-6 inline-flex items-center gap-3 rounded-full border border-violet-300/20 bg-violet-400/10 px-5 py-2 text-xs font-black uppercase tracking-[0.34em] text-violet-100 shadow-[0_0_40px_rgba(124,58,237,0.18)]">
+                      <Sparkles className="h-4 w-4 text-cyan-300" />
+                      Premium battle mode
+                    </div>
+                    <h1 className="text-balance text-5xl font-black tracking-tight text-white md:text-7xl">
+                      Real-time AI battles in a single conversation.
+                    </h1>
+                    <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-400">
+                      Enter a challenge and watch Mistral and Cohere respond side by side, then let the judge deliver a clean winner with animated reasoning.
+                    </p>
+                  </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="w-full max-w-4xl text-center"
-          >
-            <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-8 leading-[1.1]">
-              {status === 'finished' && results?.problem ? (
-                <span className="gradient-text">{results.problem}</span>
-              ) : (
-                <>
-                  The Bench for <br />
-                  <span className="gradient-text">AI Excellence.</span>
-                </>
-              )}
-            </h1>
-            <p className="text-lg md:text-xl text-slate-400 font-medium max-w-2xl mx-auto mb-12 leading-relaxed">
-              Experience real-time solution benchmarking between specialized models.
-              Enter a challenge and watch the evaluation unfold.
-            </p>
+                  <div className="mt-14 grid grid-cols-1 gap-5 xl:grid-cols-3">
+                    {emptyStateItems.map((item) => {
+                      const Icon = item.icon;
 
-            <form
-              onSubmit={handleSubmit}
-              className="relative w-full max-w-3xl mx-auto group"
-            >
-              <div className="relative glass-input rounded-2xl flex items-center p-2 pr-4 shadow-2xl transition-all border-white/10 group-focus-within:border-purple-500/30 group-focus-within:ring-4 ring-purple-500/10 group-hover:border-white/20">
-                <div className="pl-4 text-slate-500">
-                  <Search className="w-5 h-5" />
+                      return (
+                        <div
+                          key={item.title}
+                          className="rounded-[28px] border border-white/8 bg-slate-950/55 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.24)] backdrop-blur-xl"
+                        >
+                          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-violet-100">
+                            <Icon className="h-6 w-6" />
+                          </div>
+                          <h2 className="text-2xl font-black tracking-tight text-white">{item.title}</h2>
+                          <p className="mt-3 text-base leading-7 text-slate-400">{item.description}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Describe your problem (e.g., Write a factorial fn)..."
-                  className="w-full bg-transparent border-none outline-none px-6 py-5 text-white placeholder-slate-500 text-lg font-medium"
-                  disabled={status !== 'idle'}
-                />
-                <Button
-                  disabled={!input.trim() || status !== 'idle'}
-                  className="hidden md:flex gap-2"
-                >
-                  {status === 'loading' ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Zap className="w-4 h-4" />
-                  )}
-                  {status === 'loading' ? 'Comparing...' : 'Compare Solution'}
-                </Button>
-              </div>
-            </form>
-          </motion.div>
-        </section>
+              </motion.section>
+            ) : (
+              <AnimatePresence initial={false}>
+                {messages.map((message) => renderArenaMessage(message))}
+              </AnimatePresence>
+            )}
+          </ChatContainer>
 
-        <AnimatePresence>
-          {status === 'finished' && results && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6 }}
-              className="container mx-auto px-6 py-20"
-            >
-              <div className="flex flex-col items-center mb-16 text-center">
-                <div className="inline-flex items-center gap-3 bg-purple-500/10 border border-purple-500/20 px-5 py-2.5 rounded-2xl mb-6 shadow-xl shadow-purple-500/5">
-                  <Trophy className="w-6 h-6 text-yellow-400" />
-                  <span className="text-sm font-black text-white uppercase tracking-widest">
-                    Winner: {winnerLabel}
-                  </span>
-                </div>
-                <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight">
-                  {results.problem || 'Solution Comparison'}
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
-                {[
-                  {
-                    id: 'solution_1',
-                    name: 'Solution 1',
-                    solution: results.solution_1,
-                    score: results.judgeMent?.solution_1_score,
-                    reasoning: results.judgeMent?.solution_1_reasoning,
-                  },
-                  {
-                    id: 'solution_2',
-                    name: 'Solution 2',
-                    solution: results.solution_2,
-                    score: results.judgeMent?.solution_2_score,
-                    reasoning: results.judgeMent?.solution_2_reasoning,
-                  },
-                ].map((item, idx) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, x: idx === 0 ? -30 : 30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.2, duration: 0.8, ease: "easeOut" }}
-                  >
-                    <SolutionCard
-                      name={item.name}
-                      solution={item.solution}
-                      score={item.score}
-                      reasoning={item.reasoning}
-                      isWinner={winnerKey === item.id}
-                    />
-                  </motion.div>
-                ))}
-              </div>
-
-              <JudgePanel
-                judgeMent={results.judgeMent}
-                winnerKey={winnerKey}
-                winnerLabel={winnerLabel}
-              />
-
-              <div className="mt-20 flex justify-center">
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  className="gap-2 px-12 py-6 rounded-2xl border-white/5"
-                  onClick={reset}
-                >
-                  <RefreshCw className="w-5 h-5" />
-                  New Comparison
-                </Button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+          <InputBar
+            value={input}
+            onChange={setInput}
+            onSubmit={handleSubmit}
+            onClear={clearConversation}
+            isLoading={status === "loading"}
+            disabled={status === "loading"}
+            hasMessages={messages.length > 0}
+            helperText={error || (status === "loading"
+              ? "Arena is evaluating both models in real time."
+              : "Press Enter to launch a battle. Shift+Enter adds a new line.")}
+          />
+        </div>
       </main>
-
-      <footer className="py-12 border-t border-white/5 bg-black/20 text-center">
-        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest leading-relaxed">
-          Â© 2026 AI Arena Benchmark. Built by Ritam Maty.
-        </p>
-      </footer>
     </div>
   );
 };

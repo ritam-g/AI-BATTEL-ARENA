@@ -1,81 +1,107 @@
 import React from "react";
-import { Copy, Terminal, Monitor, Code } from "lucide-react";
-import { Card } from "./ui/Card";
-import { Badge } from "./ui/Badge";
+import { motion } from "framer-motion";
+import { Bot, Code2, Crown, Sparkles, TerminalSquare } from "lucide-react";
 import { cn } from "../utils/cn";
 
-const SolutionCard = ({ name, solution, score, reasoning, isWinner }) => {
-  const safeScore = typeof score === "number" ? score : 0;
+const modelConfig = {
+  mistral: {
+    icon: TerminalSquare,
+    label: "Mistral",
+    subtitle: "v0.3-large",
+    accent: "from-violet-400/25 via-violet-400/12 to-cyan-400/10",
+    pill: "border-violet-400/20 bg-violet-400/10 text-violet-100",
+    glow: "shadow-[0_0_40px_rgba(168,85,247,0.18)]",
+  },
+  cohere: {
+    icon: Bot,
+    label: "Cohere",
+    subtitle: "command-r",
+    accent: "from-cyan-400/22 via-cyan-400/10 to-violet-400/10",
+    pill: "border-cyan-400/20 bg-cyan-400/10 text-cyan-100",
+    glow: "shadow-[0_0_40px_rgba(34,211,238,0.14)]",
+  },
+};
+
+const SolutionCard = ({
+  title,
+  subtitle,
+  content,
+  score,
+  isWinner,
+  model = "mistral",
+}) => {
+  const safeScore = Number.isFinite(Number(score)) ? Number(score) : 0;
+  const config = modelConfig[model] ?? modelConfig.mistral;
+  const ModelIcon = config.icon;
 
   return (
-    <Card
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
       className={cn(
-        "relative flex flex-col h-full border-white/5 bg-slate-900/40",
-        isWinner && "glow-border ring-2 ring-purple-500/20 bg-purple-500/5"
+        "relative overflow-hidden rounded-[28px] border border-white/8 bg-white/[0.04] p-7 backdrop-blur-2xl",
+        config.glow,
+        isWinner && "ring-1 ring-violet-300/30 shadow-[0_0_60px_rgba(124,58,237,0.25)]"
       )}
     >
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-slate-800/80 border border-white/10 shadow-inner">
-            <Terminal className="w-5 h-5 text-purple-400" />
+      <div className={cn("pointer-events-none absolute inset-0 bg-gradient-to-br opacity-80", config.accent)} />
+      <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+
+      <div className="relative flex items-start justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-slate-950/45 text-white shadow-inner">
+            <ModelIcon className="h-6 w-6" />
           </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-white tracking-tight">{name}</span>
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-              Model Engine
-            </span>
+          <div>
+            <h3 className="text-3xl font-black tracking-tight text-white">{title || config.label}</h3>
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400">
+                {subtitle || config.subtitle}
+              </span>
+              {isWinner && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-violet-300/20 bg-violet-300/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-violet-100">
+                  <Crown className="h-3 w-3" />
+                  Winner
+                </span>
+              )}
+            </div>
           </div>
         </div>
-        <div className="flex gap-2">
-          {isWinner && <Badge variant="winner">🏆 Winner</Badge>}
-          <Badge variant={isWinner ? "primary" : "default"}>
-            Score {safeScore.toFixed(1)}/10
-          </Badge>
+
+        <div className={cn("rounded-full border px-4 py-2 text-lg font-black tabular-nums", config.pill)}>
+          {safeScore.toFixed(1)}
         </div>
       </div>
 
-      <div className="relative flex-1 rounded-2xl bg-black/50 border border-white/5 overflow-hidden group">
-        <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all backdrop-blur-md">
-            <Copy className="w-4 h-4" />
-          </button>
+      <div className="relative mt-6 overflow-hidden rounded-[22px] border border-white/8 bg-slate-950/70">
+        <div className="flex items-center justify-between border-b border-white/8 px-5 py-3">
+          <div className="flex items-center gap-2 text-slate-400">
+            <Code2 className="h-4 w-4" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.28em]">battle output</span>
+          </div>
+          <div className="flex items-center gap-2 text-slate-500">
+            <span className="h-2 w-2 rounded-full bg-violet-300/70" />
+            <span className="h-2 w-2 rounded-full bg-cyan-300/60" />
+            <span className="h-2 w-2 rounded-full bg-white/30" />
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 px-6 py-3 border-b border-white/5 bg-white/5 backdrop-blur-sm">
-          <Code className="w-3.5 h-3.5 text-slate-500" />
-          <span className="text-[11px] text-slate-400 font-mono tracking-wider">solution.js</span>
-        </div>
-
-        <pre className="p-6 text-sm font-mono text-slate-300 overflow-auto max-h-[400px] leading-relaxed scrollbar-thin scrollbar-thumb-white/10">
-          <code>{solution || "No solution available."}</code>
+        <pre className="chat-scrollbar max-h-[320px] overflow-auto p-5 font-mono text-sm leading-7 text-slate-100/90">
+          <code>{content || "No solution was returned for this model."}</code>
         </pre>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-white/5 bg-black/30 p-5">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-            Judge Reasoning
-          </span>
-          <Badge variant="default">Analysis</Badge>
-        </div>
-        <p className="text-sm text-slate-300 leading-relaxed font-medium">
-          {reasoning || "No reasoning available."}
-        </p>
-      </div>
-
-      <div className="mt-6 flex items-center justify-between pointer-events-none">
+      <div className="relative mt-5 flex items-center justify-between gap-4 text-xs uppercase tracking-[0.28em] text-slate-400">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full animate-pulse bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-          <span className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">
-            Verification Passed
-          </span>
+          <Sparkles className="h-4 w-4 text-cyan-300" />
+          <span>{isWinner ? "Architect's choice" : "Battle ready"}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-bold uppercase">
-          <Monitor className="w-3 h-3" />
-          <span>1.2s</span>
-        </div>
+        <span className="rounded-full border border-white/8 bg-white/5 px-3 py-1">
+          {safeScore >= 8 ? "High confidence" : "Needs review"}
+        </span>
       </div>
-    </Card>
+    </motion.div>
   );
 };
 

@@ -1,139 +1,167 @@
-// This component shows the AI Judge's evaluation of the two solutions.
-// It renders score bars and reasoning using the backend-compatible dummy shape.
-import React, { useEffect, useState } from 'react';
-import { motion, animate } from 'framer-motion';
-import { ShieldCheck, TrendingUp, Info, BarChart3 } from 'lucide-react';
-import { Card } from './ui/Card';
-import { Badge } from './ui/Badge';
-import { cn } from '../utils/cn';
+import React, { useEffect, useState } from "react";
+import { animate, motion } from "framer-motion";
+import { BarChart3, ShieldCheck, Sparkles } from "lucide-react";
+import { cn } from "../utils/cn";
+import WinnerBadge from "./chat/WinnerBadge";
 
-const ScoreBar = ({ score, label, color }) => {
-  const safeScore = typeof score === 'number' ? score : 0;
-  const [displayScore, setDisplayScore] = useState(0);
+const scoreConfig = {
+  solution_1: {
+    label: "Mistral Precision",
+    accent: "from-violet-400 to-fuchsia-400",
+  },
+  solution_2: {
+    label: "Cohere Accuracy",
+    accent: "from-cyan-400 to-sky-400",
+  },
+};
+
+const reasoningCards = {
+  solution_1: {
+    heading: "Mistral Insights",
+    tone: "text-violet-200",
+    badge: "bg-violet-400/10 border-violet-400/20 text-violet-100",
+  },
+  solution_2: {
+    heading: "Cohere Insights",
+    tone: "text-cyan-200",
+    badge: "bg-cyan-400/10 border-cyan-400/20 text-cyan-100",
+  },
+};
+
+const ScoreBar = ({ label, score, accent }) => {
+  const safeScore = Number.isFinite(Number(score)) ? Number(score) : 0;
+  const [displayValue, setDisplayValue] = useState(0);
 
   useEffect(() => {
     const controls = animate(0, safeScore, {
-      duration: 1.5,
-      onUpdate: (value) => setDisplayScore(Number(value).toFixed(1)),
+      duration: 1.1,
+      onUpdate: (value) => setDisplayValue(Number(value).toFixed(1)),
     });
+
     return () => controls.stop();
   }, [safeScore]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-end">
-        <div className="flex flex-col">
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{label}</span>
-          <span className="text-3xl font-black text-white tabular-nums tracking-tighter mt-1">{displayScore}</span>
-        </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-4">
+        <span className="text-xs font-black uppercase tracking-[0.28em] text-slate-400">{label}</span>
+        <span className="text-3xl font-black tracking-tight text-white tabular-nums">{displayValue}</span>
       </div>
-      <div className="h-2.5 bg-slate-800/80 rounded-full overflow-hidden border border-white/5 shadow-inner">
+
+      <div className="h-3 overflow-hidden rounded-full border border-white/6 bg-white/6">
         <motion.div
           initial={{ width: 0 }}
-          animate={{ width: `${(safeScore / 10) * 100}%` }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
-          className={`h-full ${color} rounded-full shadow-[0_0_15px_rgba(124,58,237,0.2)]`}
+          animate={{ width: `${Math.min((safeScore / 10) * 100, 100)}%` }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className={cn("h-full rounded-full bg-gradient-to-r", accent)}
         />
       </div>
     </div>
   );
 };
 
-const JudgePanel = ({ judgeMent, winnerKey, winnerLabel }) => {
-  const scoreCards = [
+const JudgePanel = ({ judgeMent, winnerLabel, winnerKey }) => {
+  const scoreItems = [
     {
-      id: 'solution_1',
-      label: 'Solution 1',
+      id: "solution_1",
+      label: scoreConfig.solution_1.label,
       score: judgeMent?.solution_1_score ?? 0,
-      reasoning: judgeMent?.solution_1_reasoning ?? '',
-      color: 'bg-purple-600',
+      accent: scoreConfig.solution_1.accent,
+      reasoning: judgeMent?.solution_1_reasoning ?? "",
     },
     {
-      id: 'solution_2',
-      label: 'Solution 2',
+      id: "solution_2",
+      label: scoreConfig.solution_2.label,
       score: judgeMent?.solution_2_score ?? 0,
-      reasoning: judgeMent?.solution_2_reasoning ?? '',
-      color: 'bg-blue-600',
+      accent: scoreConfig.solution_2.accent,
+      reasoning: judgeMent?.solution_2_reasoning ?? "",
     },
   ];
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-20 border-t border-white/5 src-components-JudgePanel">
-      <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
-        <div className="flex items-center gap-4">
-          <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 shadow-xl shadow-purple-500/5">
-            <ShieldCheck className="w-8 h-8 text-purple-400" />
+    <motion.section
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="overflow-hidden rounded-[30px] border border-white/8 bg-white/[0.04] p-6 shadow-[0_24px_90px_rgba(0,0,0,0.28)] backdrop-blur-2xl md:p-8"
+    >
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-violet-300/20 bg-violet-400/10 text-violet-100 shadow-[0_0_40px_rgba(124,58,237,0.18)]">
+              <ShieldCheck className="h-8 w-8" />
+            </div>
+            <div>
+              <h2 className="text-3xl font-black tracking-tight text-white md:text-4xl">AI Judge Analysis</h2>
+              <p className="mt-1 text-sm font-medium text-slate-400 md:text-base">
+                Real-time benchmarking across semantic quality, structure, and clarity.
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-3xl font-black text-white tracking-tight">AI Judge Analysis</h2>
-            <p className="text-slate-500 text-sm font-medium mt-1">Holistic evaluation of accuracy, efficiency, and code quality.</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-xl backdrop-blur-md">
-          <BarChart3 className="w-4 h-4 text-slate-400" />
-          <span className="text-xs text-slate-300 font-bold uppercase tracking-widest">Global Benchmark v2.0</span>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-1 flex flex-col justify-center gap-12 border-purple-500/10 bg-slate-900/40">
-          {scoreCards.map((item) => (
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.24em] text-slate-300">
+              <BarChart3 className="h-4 w-4" />
+              Live Verdict
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.24em] text-slate-300">
+              <Sparkles className="h-4 w-4" />
+              Premium Analysis
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-5">
+          {scoreItems.map((item) => (
             <ScoreBar
               key={item.id}
               label={item.label}
               score={item.score}
-              color={item.color}
+              accent={item.accent}
             />
           ))}
+        </div>
 
-          <div className="pt-8 border-t border-white/10 space-y-5">
-            <div className="flex items-start gap-4">
-              <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 mt-0.5">
-                <TrendingUp className="w-4 h-4 text-emerald-400" />
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                <span className="text-emerald-400 font-bold">{winnerLabel}</span> was selected by the judge as the winning model in this comparison.
-              </p>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="p-1.5 rounded-lg bg-slate-800/80 border border-white/10 mt-0.5">
-                <Info className="w-4 h-4 text-slate-400" />
-              </div>
-              <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                Evaluation weighted: Logic (40%), Safety (30%), Optimization (30%).
-              </p>
-            </div>
-          </div>
-        </Card>
+        <div className="py-2">
+          <WinnerBadge winnerLabel={winnerLabel} />
+          <p className="mt-4 text-center text-sm leading-7 text-slate-400">
+            The judge selected <span className="font-semibold text-white">{winnerLabel}</span> as the most convincing answer for this round.
+          </p>
+        </div>
 
-        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
-          {scoreCards.map((item) => (
-            <Card
-              key={`reason-${item.id}`}
-              className={cn(
-                "flex flex-col justify-between border-white/5 bg-slate-900/40",
-                item.id === winnerKey && "border-purple-500/20"
-              )}
-            >
-              <div>
-                <div className="flex items-center gap-2 mb-6">
-                  <Badge variant={item.id === winnerKey ? "primary" : "default"}>
-                    {item.label} Insight
-                  </Badge>
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+          {scoreItems.map((item) => {
+            const card = reasoningCards[item.id];
+            const isWinner = item.id === winnerKey;
+
+            return (
+              <div
+                key={item.id}
+                className={cn(
+                  "rounded-[24px] border border-white/8 bg-slate-950/55 p-5",
+                  isWinner && "border-violet-300/25 bg-violet-400/[0.08] shadow-[0_0_40px_rgba(124,58,237,0.14)]"
+                )}
+              >
+                <div className="mb-4 flex items-center gap-3">
+                  <span className={cn("rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.24em]", card.badge)}>
+                    {card.heading}
+                  </span>
+                  {isWinner && (
+                    <span className="rounded-full border border-violet-300/20 bg-violet-300/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-violet-100">
+                      Judge Winner
+                    </span>
+                  )}
                 </div>
-                <p className="text-sm text-slate-300 leading-relaxed font-medium italic overflow-hidden">
-                  "{item.reasoning || "No reasoning available."}"
+
+                <p className={cn("text-base leading-8", card.tone)}>
+                  {item.reasoning || "No detailed reasoning was returned for this battle."}
                 </p>
               </div>
-              <div className="mt-8 flex items-center justify-between border-t border-white/5 pt-4">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Sentiment Analysis</span>
-                <Badge variant="success" className="text-[9px]">Verified</Badge>
-              </div>
-            </Card>
-          ))}
+            );
+          })}
         </div>
       </div>
-    </div>
+    </motion.section>
   );
 };
 

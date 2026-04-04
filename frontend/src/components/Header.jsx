@@ -1,7 +1,7 @@
 // This is the Header component that stays at the top of the page.
 // It contains the logo, navigation links, and the sign-in button.
 import React from 'react';
-import { Layers, Star } from 'lucide-react';
+import { Layers } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // Custom Github Icon as Lucide doesn't include brand logos

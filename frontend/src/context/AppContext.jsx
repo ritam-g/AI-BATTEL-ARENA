@@ -1,51 +1,103 @@
-import React, { createContext, useContext, useState } from 'react';
-import { mockData } from '../data/mockData';
-import axios from 'axios'
+import React, { createContext, useContext, useState } from "react";
+import axios from "axios";
+import { createBattleMessage, normalizeBattleResult } from "../utils/battle";
+
 const AppContext = createContext();
+
+const wait = (duration) => new Promise((resolve) => {
+  window.setTimeout(resolve, duration);
+});
 
 export const useApp = () => {
   const context = useContext(AppContext);
+
   if (!context) {
-    throw new Error('useApp must be used within an AppProvider');
+    throw new Error("useApp must be used within an AppProvider");
   }
+
   return context;
 };
 
 export const AppProvider = ({ children }) => {
-  const [status, setStatus] = useState('idle'); // 'idle' | 'loading' | 'finished'
+  const [status, setStatus] = useState("idle");
   const [results, setResults] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [error, setError] = useState("");
 
+  // startComparison keeps the existing API request intact, then stages
+  // the battle UI as separate chat events so the interface feels live.
   const startComparison = async (inputProblem) => {
-    setStatus('loading');
+    const trimmedProblem = inputProblem?.trim();
 
-    // Keep the dummy data shape identical to the backend response shape
-    // so the UI can swap to real API data later without structural changes.
-    // ! api call here
-    const response= await axios.post('http://localhost:3000/compare', { userInput: inputProblem })
+    if (!trimmedProblem || status === "loading") {
+      return;
+    }
 
-    const {result}=response.data
-    console.log(response.data);
-    console.log(result);
-    
-    
-    
-    //! result comes from backend
-    setTimeout(() => {
-      setResults({
-        ...result,
-        problem: inputProblem?.trim() || mockData.problem,
+    setStatus("loading");
+    setError("");
+
+    setMessages((currentMessages) => [
+      ...currentMessages,
+      createBattleMessage("user", { content: trimmedProblem }),
+      createBattleMessage("battle_start", { problem: trimmedProblem }),
+    ]);
+
+    try {
+      const response = await axios.post("http://localhost:3000/compare", {
+        userInput: trimmedProblem,
       });
-      setStatus('finished');
-    }, 2000);
+
+      const normalizedResult = normalizeBattleResult(response?.data?.result, trimmedProblem);
+
+      setResults(normalizedResult);
+
+      await wait(650);
+      setMessages((currentMessages) => [
+        ...currentMessages,
+        createBattleMessage("solutions", normalizedResult),
+      ]);
+
+      await wait(700);
+      setMessages((currentMessages) => [
+        ...currentMessages,
+        createBattleMessage("judgement", {
+          problem: normalizedResult.problem,
+          judgeMent: normalizedResult.judgeMent,
+        }),
+      ]);
+
+      setStatus("finished");
+    } catch (requestError) {
+      console.error("Arena comparison failed", requestError);
+      setError("Unable to connect to the battle service right now.");
+      setMessages((currentMessages) => [
+        ...currentMessages,
+        createBattleMessage("system", {
+          content: "Unable to connect to the battle service right now. Please try again.",
+        }),
+      ]);
+      setStatus("idle");
+    }
   };
 
-  const reset = () => {
-    setStatus('idle');
+  const clearConversation = () => {
+    setStatus("idle");
     setResults(null);
+    setMessages([]);
+    setError("");
   };
 
   return (
-    <AppContext.Provider value={{ status, results, startComparison, reset }}>
+    <AppContext.Provider
+      value={{
+        status,
+        results,
+        messages,
+        error,
+        startComparison,
+        clearConversation,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );
